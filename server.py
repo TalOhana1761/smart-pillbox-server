@@ -26,6 +26,11 @@ def getToday():
 def cleanList(theList):
     return [value for value in theList if value != ""]
 
+def checkCameraRoutineTime(now):
+    if type(now) == int:
+        return -1
+    return int((datetime.datetime.now() - now).total_seconds() / 60.0)
+
 servosControls.setupForMotors()
 
 savedEmail = open("emailReg.txt" , "r")
@@ -40,9 +45,13 @@ if todayIndex == '':
     todayIndex = 0
 todaysIndexFile.close()
 
-cameraTime = messageDecode.cameraTime
+savedCameraTimeFile = open("cameraTime.txt" , "r")
+savedCameraTime = int(savedCameraTimeFile.read())
+savedCameraTimeFile.close()
+
 today = ''
 exceptionFlag = 0
+startCountingForCameraNotification = 0;
 
 host = ''
 portNumber = 21334
@@ -89,5 +98,12 @@ while True:
                 todaysIndexFile.write(str(todayIndex))
                 todaysIndexFile.close()
                 exceptionFlag = 0
+                startCountingForCameraNotification = datetime.datetime.now()
+                savedCameraTimeFile = open("cameraTime.txt" , "r")
+                savedCameraTime = int(savedCameraTimeFile.read())
+                savedCameraTimeFile.close()
+        if checkCameraRoutineTime(startCountingForCameraNotification) >= savedCameraTime:
+            cameraRoutine.runRoutine(email)
+            startCountingForCameraNotification = 0
             
 serverSocket.close()
